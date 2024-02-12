@@ -2,8 +2,11 @@
 __pycache__/
 *.py[cod]
 *$py.class
-/shelf/
-/workspace.xml
+
+# Pycharm
+.idea/
+
+
 # C extensions
 *.so
 
