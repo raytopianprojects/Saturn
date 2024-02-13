@@ -6,12 +6,9 @@ load_prc_file_data("", """aspect-ratio 1.7777
 win-size 960 540
 red-blue-stereo 0
 side-by-side-stereo 0
-undecorated 1""")
+undecorated 0""")
 
-window = ShowBase()
-winprops = WindowProperties()
-winprops.setZOrder(WindowProperties.Z_top)
-window.win.requestProperties(winprops)
+
 
 
 def button_callback(sender, app_data, user_data):
@@ -83,26 +80,45 @@ def scene_graph(parent):
                     scene_graph(grandchild)
 
 
+
+
+levels = ["start"]
+current_level = 0
+
+database_data = {}
+
+
+dpg.setup_dearpygui()
+dpg.show_viewport()
+dpg.maximize_viewport()
+
+window = ShowBase()
+winprops = WindowProperties()
+winprops.setZOrder(WindowProperties.Z_top)
+window.win.requestProperties(winprops)
+
 window.loader.load_model("panda").reparent_to(window.render)
 a = DirectionalLight("HI")
 an = window.render.attach_new_node(a)
-
-levels = ["start"]
 
 with dpg.window(label="Example Window", autosize=True, no_close=True):
     with dpg.tab_bar():
         with dpg.tab(label='Game'):
             pass
         with dpg.tab(label="Level"):
-            dpg.add_button(label="New Level", callback=lambda: (levels.append("new_level"), ))
+            dpg.add_button(label="New Level", callback=lambda: (levels.append("new_level"), dpg.configure_item(combo, items=levels)))
             dpg.add_button(label="Duplicate Level", callback=lambda: (levels.append("new_level"), ))
             dpg.add_button(label="Delete Level", callback=lambda: (levels.append("new_level"), ))
 
-            dpg.add_listbox(items=levels)
+
+            def callback(sender, app_data, user_data):
+                print("Called on the main thread!")
+
+            combo = dpg.add_combo(items=levels, default_value=levels[0])
             with render:
-                scene_graph(window.render)
+                scene_graph(base.render)
             with render2d:
-                scene_graph(window.render2d)
+                scene_graph(base.render2d)
         with dpg.tab(label='Shaders'):
             pass
         with dpg.tab(label='Particles'):
@@ -112,15 +128,33 @@ with dpg.window(label="Example Window", autosize=True, no_close=True):
         with dpg.tab(label='Sequence'):
             pass
         with dpg.tab(label='Database'):
-            pass
+            dpg.add_button(label="New Entity")
+            with dpg.collapsing_header():
+                dpg.add_button(label="Delete Entity")
+                with dpg.table(header_row=False) as table:
+
+                    # use add_table_column to add columns to the table,
+                    # table columns use child slot 0
+                    dpg.add_table_column()
+                    dpg.add_table_column()
+                    with dpg.table_row():
+                        dpg.add_input_text(label="Appearance", default_value="panda")
+                    # add_table_next_column will jump to the next row
+                    # once it reaches the end of the columns
+                    # table next column use slot 1
+                    for i in range(0, 4):
+                        with dpg.table_row():
+                             dpg.add_input_text(label=f"Row{i} Column")
+
+                dpg.add_button(label="New Data")
+                dpg.add_input_text()
+
+
         with dpg.tab(label='Settings'):
             pass
 with dpg.window(label="Properties", autosize=True,pos=(750,0), no_close=True):
     dpg.add_text("Properities")
 
-dpg.setup_dearpygui()
-dpg.show_viewport()
-dpg.maximize_viewport()
 
 # below replaces, start_dearpygui()
 while dpg.is_dearpygui_running():
